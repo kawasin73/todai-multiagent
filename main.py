@@ -1,6 +1,7 @@
 import random
 import math
 import copy
+import time
 import functools
 import matplotlib.pyplot as plt
 
@@ -103,7 +104,10 @@ class ABCCalc:
         return self.values[min_idx], self.samples[min_idx]
 
     def _fit(self, v):
-        return math.exp(-v)
+        try:
+            return math.exp(-v)
+        except OverflowError:
+            return 0
 
     def _employed_bees(self):
         next_samples = copy.copy(self.samples)
@@ -242,7 +246,7 @@ class Executer:
     STEPS = 5000
 
     CALCS = [
-        PSOCalc(DIMENSION, w=1.0, c1=1.0, c2=1.0),
+        PSOCalc(DIMENSION, w=0.3, c1=0.3, c2=0.4),
         ABCCalc(DIMENSION, trial_limit=10),
     ]
     FUNCS = [
@@ -260,16 +264,22 @@ class Executer:
                 self._exec(calc, func)
 
     def _exec(self, calc, func):
-        calc.initialize(func, self.SAMPLES)
         logs = []
+        start = time.time()
+        calc.initialize(func, self.SAMPLES)
         for i in range(self.STEPS):
             calc.next_step()
             if i % 100 == 0:
                 value, _ = calc.best_set()
                 logs.append([i, value])
+        end = time.time()
         value, point = calc.best_set()
+        logs.append([self.STEPS, value])
+
         print(calc.NAME, '[', func.NAME, ']')
         print(value, point)
+        print("time {0} sec".format(end - start))
+        print('')
         self._save_image(logs, calc.NAME, func.NAME, value)
 
     def _save_image(self, logs, calc_name, func_name, value):
