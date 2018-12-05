@@ -1,6 +1,8 @@
 import random
 import math
 import copy
+import matplotlib
+import matplotlib.pyplot as plt
 
 
 # Particle Swarm Optimization
@@ -205,15 +207,22 @@ class Executer:
         for i in range(self.STEPS):
             calc.next_step()
             if i % 100 == 0:
-                value, point = calc.best_set()
-                logs.append([i, value, point])
-                print(i)
+                value, _ = calc.best_set()
+                logs.append([i, value])
         value, point = calc.best_set()
         print(calc.NAME, func.NAME)
         print(value, point)
+        self._save_image(logs, calc.NAME, func.NAME)
 
-    def _save_image(self, logs):
-        # TODO: save graph image
+    def _save_image(self, logs, calc_name, func_name):
+        idx, values = list(zip(*logs))
+        plt.plot(idx, values)
+        plt.xlabel('steps')
+        plt.yscale('log')
+        plt.grid(which='both')
+        plt.suptitle(calc_name + ' + ' + func_name)
+        plt.savefig(calc_name + '_' + func_name + '.png')
+        plt.clf()
         return
 
 

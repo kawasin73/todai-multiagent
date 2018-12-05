@@ -1,2 +1,4 @@
 .envrc
 .venv
+.DS_Store
+*.png
