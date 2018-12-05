@@ -1,7 +1,7 @@
 import random
 import math
 import copy
-import matplotlib
+import functools
 import matplotlib.pyplot as plt
 
 
@@ -179,8 +179,61 @@ class SphereFunction(Function):
     MAX = 5.0
     MIN = -5.0
 
-    def call(self, sample):
-        return sum([v * v for v in sample])
+    def call(self, x):
+        return sum([v * v for v in x])
+
+
+class RastriginFunction(Function):
+    NAME = "RastriginFunction"
+    MAX = 5.0
+    MIN = -5.0
+
+    def call(self, x):
+        return 10 * len(x) + sum([(v * v) - (10 * math.cos(2 * math.pi * v)) for v in x])
+
+
+class RosenbrockFunction(Function):
+    NAME = "RosenbrockFunction"
+    MAX = 10.0
+    MIN = -5.0
+
+    def call(self, x):
+        result = 0.0
+        for i in range(len(x) - 1):
+            v1 = (x[i + 1] - x[i] * x[i])
+            v2 = (1.0 - x[i])
+            result += (100 * v1 * v1 + v2 * v2)
+        return result
+
+
+class GriewankFunction(Function):
+    NAME = "GriewankFunction"
+    MAX = 600.0
+    MIN = -600.0
+
+    def call(self, x):
+        return 1.0 + sum([v * v for v in x]) / 4000.0 - functools.reduce(
+            lambda v, y: v * y,
+            [math.cos(xi / math.sqrt(i + 1.0)) for i, xi in enumerate(x)]
+        )
+
+
+class AlpineFunction(Function):
+    NAME = "AlpineFunction"
+    MAX = 10.0
+    MIN = -10.0
+
+    def call(self, x):
+        return sum([math.fabs(v * math.sin(v) + 0.1 * v) for v in x])
+
+
+class TwoNMinimaFunction(Function):
+    NAME = "2n MinimaFunction"
+    MAX = 5.0
+    MIN = -5.0
+
+    def call(self, x):
+        return sum([math.pow(v, 4) - 16.0 * math.pow(v, 2) + 5 * v for v in x])
 
 
 class Executer:
@@ -193,7 +246,12 @@ class Executer:
         ABCCalc(DIMENSION, trial_limit=10),
     ]
     FUNCS = [
-        SphereFunction()
+        SphereFunction(),
+        RastriginFunction(),
+        RosenbrockFunction(),
+        GriewankFunction(),
+        AlpineFunction(),
+        TwoNMinimaFunction(),
     ]
 
     def exec(self):
@@ -210,20 +268,20 @@ class Executer:
                 value, _ = calc.best_set()
                 logs.append([i, value])
         value, point = calc.best_set()
-        print(calc.NAME, func.NAME)
+        print(calc.NAME, '[', func.NAME, ']')
         print(value, point)
-        self._save_image(logs, calc.NAME, func.NAME)
+        self._save_image(logs, calc.NAME, func.NAME, value)
 
-    def _save_image(self, logs, calc_name, func_name):
+    def _save_image(self, logs, calc_name, func_name, value):
         idx, values = list(zip(*logs))
         plt.plot(idx, values)
         plt.xlabel('steps')
-        plt.yscale('log')
+        if value > 0:
+            plt.yscale('log')
         plt.grid(which='both')
         plt.suptitle(calc_name + ' + ' + func_name)
         plt.savefig(calc_name + '_' + func_name + '.png')
         plt.clf()
-        return
 
 
 if __name__ == '__main__':
